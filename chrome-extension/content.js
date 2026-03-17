@@ -12,7 +12,7 @@
   fab.innerHTML = `
     <button class="crm-fab-btn customer" id="crm-fab-cust">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-      Khách
+      Customer
     </button>
     <div class="crm-fab-divider"></div>
     <button class="crm-fab-btn sales" id="crm-fab-sales">
@@ -27,7 +27,7 @@
   cartBtn.id = "guerrilla-crm-cart";
   cartBtn.style.display = "none"; // Ẩn khi chưa có tin nhắn nào
   cartBtn.innerHTML = `
-    <span>Phân tích CRM</span>
+    <span>Analyze CRM</span>
     <span id="crm-cart-badge">0</span>
   `;
   document.body.appendChild(cartBtn);
@@ -40,14 +40,14 @@
   const modal = document.createElement("div");
   modal.id = "guerrilla-crm-modal";
   modal.innerHTML = `
-    <h3>Review Hội Thoại <span id="crm-modal-close">&times;</span></h3>
+    <h3>Review Conversation <span id="crm-modal-close">&times;</span></h3>
 
     <!-- Bước 1: Duyệt nội dung chữ đã nhặt -->
     <div id="crm-step-1" class="crm-step active">
-      <span class="crm-label">Danh sách tin nhắn bạn đã lưu tạm</span>
+      <span class="crm-label">Temporarily saved messages</span>
       <div id="crm-msg-list" class="crm-msg-list"></div>
       
-      <button id="crm-analyze-btn" class="crm-btn">Gửi AI phân tích tổng hợp →</button>
+      <button id="crm-analyze-btn" class="crm-btn">Send to AI for analysis →</button>
     </div>
 
     <!-- Bước 2: AI Result & Auto Create Lead (2-Column Form) -->
@@ -55,25 +55,25 @@
       <div class="crm-form-grid">
         <!-- CỘT TRÁI: HỒ SƠ KHÁCH HÀNG -->
         <div class="crm-form-col">
-          <div class="crm-col-title">👤 Thông tin Hồ sơ</div>
+          <div class="crm-col-title">👤 Profile Info</div>
           <div class="crm-form-row">
             <div class="crm-form-group">
-              <span class="crm-form-label">Tên khách hàng</span>
+              <span class="crm-form-label">Customer Name</span>
               <input type="text" id="crm-form-name" class="crm-form-input" placeholder="Nguyễn Văn A" />
             </div>
             <div class="crm-form-group">
-              <span class="crm-form-label">Số điện thoại</span>
+              <span class="crm-form-label">Phone Number</span>
               <input type="text" id="crm-form-phone" class="crm-form-input" placeholder="09xxxx" />
               <span id="crm-lookup-msg" class="crm-lookup-status"></span>
             </div>
           </div>
           <div class="crm-form-group">
-            <span class="crm-form-label">Tên Công Ty</span>
+            <span class="crm-form-label">Company Name</span>
             <input type="text" id="crm-form-company" class="crm-form-input" placeholder="Công ty ABC..." />
           </div>
           <div class="crm-form-row">
             <div class="crm-form-group">
-              <span class="crm-form-label">Chức Vụ</span>
+              <span class="crm-form-label">Job Title</span>
               <input type="text" id="crm-form-job" class="crm-form-input" placeholder="Giám đốc..." />
             </div>
             <div class="crm-form-group">
@@ -82,7 +82,7 @@
             </div>
           </div>
           <div class="crm-form-group">
-            <span class="crm-form-label">Địa Chỉ</span>
+            <span class="crm-form-label">Address</span>
             <input type="text" id="crm-form-address" class="crm-form-input" placeholder="Số nhà, đường..." />
           </div>
           <div class="crm-form-group" style="margin-bottom:0">
@@ -93,7 +93,7 @@
 
         <!-- CỘT PHẢI: CONTEXT BÁN HÀNG -->
         <div class="crm-form-col">
-          <div class="crm-col-title">💼 Ngữ cảnh Mua hàng</div>
+          <div class="crm-col-title">💼 Sales Context</div>
           
           <input type="hidden" id="crm-customer-id" />
 
@@ -109,7 +109,7 @@
 
           <div class="crm-form-row">
             <div class="crm-form-group">
-              <span class="crm-form-label">Ngân sách</span>
+              <span class="crm-form-label">Budget</span>
               <input type="number" id="crm-form-budget" class="crm-form-input" />
             </div>
             <div class="crm-form-group">
@@ -118,24 +118,24 @@
             </div>
           </div>
           <div class="crm-form-group">
-            <span class="crm-form-label">Tóm tắt AI</span>
+            <span class="crm-form-label">AI Summary</span>
             <textarea id="crm-form-summary" class="crm-form-input" style="height:35px"></textarea>
           </div>
           <div class="crm-form-group" style="margin-bottom:0">
-            <span class="crm-form-label">Cảm xúc</span>
+            <span class="crm-form-label">Sentiment</span>
             <select id="crm-form-sentiment" class="crm-form-input">
-              <option value="POSITIVE">Tích cực</option>
-              <option value="NEUTRAL">Bình thường</option>
-              <option value="NEGATIVE">Tiêu cực</option>
+              <option value="POSITIVE">Positive</option>
+              <option value="NEUTRAL">Neutral</option>
+              <option value="NEGATIVE">Negative</option>
             </select>
           </div>
         </div>
       </div> <!-- End Grid -->
 
-      <button id="crm-save-btn" class="crm-btn-success">Lưu Database ✓</button>
-      <button id="crm-back-1-btn" class="crm-btn-secondary">← Quay lại review tin nhắn</button>
+      <button id="crm-save-btn" class="crm-btn-success">Save to Database ✓</button>
+      <button id="crm-back-1-btn" class="crm-btn-secondary">← Back to review messages</button>
       
-      <div id="crm-status-msg" class="crm-status">Đã lưu thành công!</div>
+      <div id="crm-status-msg" class="crm-status">Saved successfully!</div>
       <div id="crm-error-msg" class="crm-error"></div>
     </div>
   `;
@@ -211,7 +211,7 @@
     list.innerHTML = "";
     
     if (accumulatedMessages.length === 0) {
-      list.innerHTML = "<div style='padding:10px;text-align:center;color:#888'>Chưa nhặt tin nhắn nào. Bôi đen hội thoại trên trang để thêm vào đây.</div>";
+      list.innerHTML = "<div style='padding:10px;text-align:center;color:#888'>No messages captured yet. Highlight text on the page to add here.</div>";
       document.getElementById("crm-analyze-btn").disabled = true;
       return;
     }
@@ -227,7 +227,7 @@
       const sel = document.createElement("select");
       sel.className = msg.role;
       sel.innerHTML = `
-        <option value="customer" ${msg.role === "customer" ? "selected" : ""}>Khách</option>
+        <option value="customer" ${msg.role === "customer" ? "selected" : ""}>Customer</option>
         <option value="sales" ${msg.role === "sales" ? "selected" : ""}>Sales</option>
       `;
       sel.addEventListener("change", (e) => {
@@ -268,7 +268,7 @@
   async function searchCustomers(phone) {
     const url = `http://localhost:3000/api/customers${phone ? "?phone=" + encodeURIComponent(phone) : ""}`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error("API Lỗi: " + res.status);
+    if (!res.ok) throw new Error("API Error: " + res.status);
     return await res.json();
   }
 
@@ -284,13 +284,13 @@
 
     if (!phoneVal || phoneVal.length < 8) {
       msgEl.className = "crm-lookup-status new";
-      msgEl.textContent = "Khách lạ (Sẽ tạo Lead mới)";
+      msgEl.textContent = "Customer lạ (Sẽ tạo Lead mới)";
       idEl.value = "";
-      btnSave.textContent = "Tạo Lead Mới & Lưu ✓";
+      btnSave.textContent = "Create New Lead & Save ✓";
       return;
     }
     
-    msgEl.textContent = "Đang tra cứu...";
+    msgEl.textContent = "Looking up...";
     msgEl.className = "crm-lookup-status";
     
     try {
@@ -300,20 +300,20 @@
       
       if (exactMatch) {
         msgEl.className = "crm-lookup-status existing";
-        msgEl.textContent = `Khách cũ: ${exactMatch.name} (Có sẵn trong CRM)`;
+        msgEl.textContent = `Customer cũ: ${exactMatch.name} (Có sẵn trong CRM)`;
         idEl.value = exactMatch.id;
-        btnSave.textContent = "Cập nhật Khách & Lưu Chat ✓";
+        btnSave.textContent = "Update Customer & Save Chat ✓";
       } else {
         msgEl.className = "crm-lookup-status new";
         msgEl.textContent = "SĐT chưa có (Sẽ tạo Lead mới)";
         idEl.value = "";
-        btnSave.textContent = "Tạo Lead Mới & Lưu ✓";
+        btnSave.textContent = "Create New Lead & Save ✓";
       }
     } catch {
       msgEl.className = "crm-lookup-status new";
       msgEl.textContent = "Không thể tra cứu CRM (Sẽ thử tạo mới)";
       idEl.value = "";
-      btnSave.textContent = "Tạo Lead Mới & Lưu ✓";
+      btnSave.textContent = "Create New Lead & Save ✓";
     }
   }
 
@@ -323,7 +323,7 @@
 
     const chatContent = JSON.stringify(accumulatedMessages);
     const btn = document.getElementById("crm-analyze-btn");
-    btn.textContent = "Đang bóc tách dữ liệu AI...";
+    btn.textContent = "Extracting AI data...";
     btn.disabled = true;
 
     try {
@@ -370,7 +370,7 @@
     } catch (err) {
       alert("Lỗi AI: " + err.message);
     } finally {
-      btn.textContent = "Gửi AI phân tích tổng hợp →";
+      btn.textContent = "Send to AI for analysis →";
       btn.disabled = false;
     }
   });
@@ -381,10 +381,10 @@
   document.getElementById("crm-save-btn").addEventListener("click", async () => {
     let customerId = document.getElementById("crm-customer-id").value;
     const phone = document.getElementById("crm-form-phone").value.trim();
-    const name = document.getElementById("crm-form-name").value.trim() || "Khách Hàng Chưa Tên";
+    const name = document.getElementById("crm-form-name").value.trim() || "Unnamed Customer";
 
     const btn = document.getElementById("crm-save-btn");
-    btn.textContent = "Đang lưu hệ thống...";
+    btn.textContent = "Saving to system...";
     btn.disabled = true;
     document.getElementById("crm-error-msg").style.display = "none";
 
@@ -401,7 +401,7 @@
     try {
       // 1. Nếu là KH mới -> Gọi API Create Customer để sinh Lead
       if (!customerId) {
-        if (!phone) throw new Error("Vui lòng nhập số điện thoại để tạo Lead mới!");
+        if (!phone) throw new Error("Please enter a phone number to create a new Lead!");
         const leadRes = await fetch("http://localhost:3000/api/customers", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -417,14 +417,14 @@
             budget
           })
         });
-        if (!leadRes.ok) throw new Error("Không thể tạo Lead (" + leadRes.status + ")");
+        if (!leadRes.ok) throw new Error("Cannot create Lead (" + leadRes.status + ")");
         const newLead = await leadRes.json();
         customerId = newLead.id;
       }
 
       // 2. Chuyển thông tin hội thoại tới Backend Interactions
       const channel = getCurrentChannel();
-      const rawContent = accumulatedMessages.map((m) => `${m.role === "sales" ? "Sales" : "Khách"}: ${m.text}`).join("\\n");
+      const rawContent = accumulatedMessages.map((m) => `${m.role === "sales" ? "Sales" : "Customer"}: ${m.text}`).join("\\n");
       
       const dbRes = await fetch("http://localhost:3000/api/interactions", {
         method: "POST",
@@ -448,10 +448,10 @@
         }),
       });
       
-      if (!dbRes.ok) throw new Error("Lưu chat lỗi " + dbRes.status);
+      if (!dbRes.ok) throw new Error("Save chat error " + dbRes.status);
       
       const sEl = document.getElementById("crm-status-msg");
-      sEl.textContent = "✅ Đã lưu Lead và Hội thoại thành công!";
+      sEl.textContent = "✅ Saved Lead and Conversation successfully!";
       sEl.style.display = "block";
       
       setTimeout(() => {
@@ -462,10 +462,10 @@
       
     } catch (err) {
       const errEl = document.getElementById("crm-error-msg");
-      errEl.textContent = "Lỗi: " + err.message;
+      errEl.textContent = "Error: " + err.message;
       errEl.style.display = "block";
     } finally {
-      btn.textContent = customerId ? "Cập nhật Khách & Lưu Chat ✓" : "Tạo Lead Mới & Lưu ✓";
+      btn.textContent = customerId ? "Update Customer & Save Chat ✓" : "Create New Lead & Save ✓";
       btn.disabled = false;
     }
   });

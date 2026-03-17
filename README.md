@@ -1,63 +1,63 @@
-# Guerrilla CRM - Hướng dẫn Cài đặt & Khởi chạy
+# Guerrilla CRM - Installation & Setup Guide
 
-Dự án CRM này được thiết kế với 3 thành phần chính: 
-1. **Go Backend Server** (API xử lý dữ liệu chính)
-2. **AI Worker** (Cloudflare Worker phân tích Data/Chat bằng AI)
-3. **Chrome Extension** (Bắt thông tin chat đa kênh trực tiếp từ trình duyệt)
+This CRM project is designed with 3 main components:
+1. **Go Backend Server** (Main data processing API)
+2. **AI Worker** (Cloudflare Worker for analyzing Data/Chat via AI)
+3. **Chrome Extension** (Captures multi-channel chat information directly from the browser)
 
-Dưới đây là các bước để khởi chạy từng thành phần:
+Below are the instructions to run each component:
 
 ---
 
-## 1. Chạy Go Backend Server
+## 1. Run Go Backend Server
 
-Backend được code bằng ngôn ngữ Go.
+The backend is built using the Go programming language.
 
-- **Yêu cầu:** Đã cài đặt Golang.
-- **Biến môi trường:** Nếu mở rộng, bạn có thể thiết lập file `.env` chung thư mục với file `main.go`. Có thể cần `AI_WORKER_URL` là endpoint của worker ở bước 2.
+- **Requirements:** Golang installed.
+- **Environment variables:** If scaling, you can set up a `.env` file in the same directory as `main.go`. You may need the `AI_WORKER_URL` pointing to the endpoint established in step 2.
 
-**Các bước khởi chạy:**
-1. Mở terminal vào thư mục gốc của project \`guerrilla-crm\`.
-2. Chạy ứng dụng bằng lệnh:
+**Launch steps:**
+1. Open a terminal in the root directory of the `guerrilla-crm` project.
+2. Run the application using the command:
    ```bash
    go run main.go
    ```
-=> Mặc định server sẽ hoạt động trên cổng `http://localhost:3000`
+=> By default, the server will operate on `http://localhost:3000`
 
 ---
 
-## 2. Chạy AI Worker (Cloudflare)
+## 2. Run AI Worker (Cloudflare)
 
-Worker đóng vai trò giao tiếp với Cloudflare AI theo cấu hình ở file `wrangler.toml`.
+The worker acts as the communication layer with Cloudflare AI according to the configuration in `wrangler.toml`.
 
-- **Yêu cầu:** Đã cài đặt Node.js và npx. 
+- **Requirements:** Node.js and npx installed.
 
-**Các bước khởi chạy dev local:**
-1. Mở thêm 1 tab terminal khác, trỏ vào thư mục `ai-worker`:
+**Local development launch steps:**
+1. Open a second terminal tab and navigate to the `ai-worker` directory:
    ```bash
    cd ai-worker
    ```
-2. Chạy giả lập bằng Wrangler Cloudflare:
+2. Run the local simulation using Wrangler:
    ```bash
    npx wrangler dev
    ```
-=> Thường Wrangler sẽ khởi chạy giả lập chạy tại cổng `http://localhost:8787`.
+=> Wrangler typically starts the simulated worker on port `http://localhost:8787`.
 
 ---
 
-## 3. Cài đặt Chrome Extension
+## 3. Install Chrome Extension
 
-Extension này sẽ bắt sự kiện khung chat từ các hệ thống lớn như Zalo, Messenger, WhatsApp,...
+This extension captures chat framed events from major platforms like Zalo, Messenger, WhatsApp,...
 
-**Các bước thêm vào Chrome:**
-1. Mở trình duyệt Chrome/Edge/Cốc Cốc, trên thanh địa chỉ truy cập vào:
+**Steps to add to Chrome:**
+1. Open Chrome/Edge/Coc Coc browser, and up in the address bar navigate to:
    ```text
    chrome://extensions/
    ```
-2. Nhìn góc trên bên phải, **bật chế độ "Developer mode"** (Chế độ dành cho nhà phát triển).
-3. Ấn nút **"Load unpacked"** (Tải tiện ích đã giải nén) xuất hiện trên cùng sát bên trái.
-4. Trỏ tới và **chọn nguyên thư mục `chrome-extension`** trong dự án `guerrilla-crm` của bạn.
-5. Vây là xong! Bạn sẽ thấy icon Guerrilla CRM hiện lên, và nó bắt đầu hoạt động khi bạn mở tab như Zalo Web / Facebook Messenger. 
+2. Look at the top right corner and **enable "Developer mode"**.
+3. Click the **"Load unpacked"** button that appears on the top left.
+4. Browse and select the entire `chrome-extension` folder within your `guerrilla-crm` project.
+5. That's it! You will see the Guerrilla CRM icon appear, and it will start working when you open tabs like Zalo Web / Facebook Messenger.
 
 ---
-*Lưu ý: Bạn phải chạy đồng thời cả bước 1 và bước 2 để toàn bộ hệ thống lưu trữ đồng bộ mượt mà!*
+*Note: You must run both step 1 and step 2 concurrently for the entire storage system to sync smoothly!*

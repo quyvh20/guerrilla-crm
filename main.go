@@ -131,7 +131,7 @@ func main() {
 			AiSummary  string `json:"ai_summary"`
 			Sentiment  string `json:"sentiment"`
 			SalesScore int    `json:"sales_score"`
-			// Các trường Profile mở rộng
+			// Extended Profile fields
 			Email      string `json:"email"`
 			Address    string `json:"address"`
 			JobTitle   string `json:"job_title"`
@@ -167,7 +167,7 @@ func main() {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		// Cập nhật Hồ Sơ Khách Hàng (Rich Profile)
+		// Update Customer Profile (Rich Profile)
 		updates := map[string]interface{}{
 			"last_contact_at": time.Now(),
 		}
