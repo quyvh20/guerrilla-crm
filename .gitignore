@@ -1,0 +1,17 @@
+# Server executable
+server.exe
+
+# Environment variables
+.env
+
+# VS Code settings
+.vscode/
+
+# Wrangler / Cloudflare build
+.wrangler/
+ai-worker/.wrangler/
+
+# Databases
+*.db
+*.sqlite
+database.db
