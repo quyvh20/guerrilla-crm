@@ -1,4 +1,4 @@
-/* Trạng thái tích lũy Data (Floating Button đổi thành Toolbar) */
+/* Floating FAB Toolbar (appears on text selection) */
 #guerrilla-crm-fab {
   position: absolute;
   background: white;
@@ -40,7 +40,7 @@
   margin: 0 4px;
 }
 
-/* Biểu tượng giỏ hàng Mini ở góc dưới cùng bên phải */
+/* Cart mini button at bottom right corner */
 #guerrilla-crm-cart {
   position: fixed;
   bottom: 20px;
@@ -77,13 +77,13 @@
   text-align: center;
 }
 
-/* Modal Popup chính hiển thị ở giữa màn hình */
+/* Main modal popup centered on screen */
 #guerrilla-crm-modal {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 450px;
+  width: 500px;
   background: white;
   z-index: 2147483647;
   padding: 24px;
@@ -181,7 +181,7 @@
   font-size: 13px;
   color: #333;
   line-height: 1.5;
-  white-space: pre-wrap; /* Giữ nguyên xuống dòng của đoạn text */
+  white-space: pre-wrap;
 }
 
 .crm-delete-msg {
@@ -243,6 +243,83 @@
 }
 .crm-btn-success:hover { background: #218838; }
 
+/* Lead Options Radio Buttons */
+.crm-lead-options {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.crm-radio-label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #495057;
+  transition: all 0.2s;
+  background: #f8f9fa;
+}
+
+.crm-radio-label:hover {
+  border-color: #adb5bd;
+  background: #e9ecef;
+}
+
+.crm-radio-label.crm-radio-active {
+  border-color: #0068ff;
+  background: #e6f0ff;
+  color: #0068ff;
+  font-weight: bold;
+}
+
+.crm-radio-label input[type="radio"] {
+  accent-color: #0068ff;
+}
+
+.crm-radio-icon {
+  font-size: 14px;
+}
+
+/* Existing Lead Search Panel */
+.crm-search-results {
+  max-height: 150px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  background: #f8f9fa;
+}
+
+.crm-search-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  border-bottom: 1px solid #eee;
+  transition: background 0.15s;
+}
+
+.crm-search-item:last-child {
+  border-bottom: none;
+}
+
+.crm-search-item:hover {
+  background: #e6f0ff;
+}
+
+.crm-search-empty {
+  padding: 12px;
+  text-align: center;
+  color: #888;
+  font-size: 12px;
+}
+
+/* Form layout */
 .crm-form-group {
   margin-bottom: 12px;
 }
@@ -270,6 +347,11 @@
 .crm-form-input:focus {
   border-color: #0068ff;
   box-shadow: 0 0 0 2px rgba(0,104,255,0.1);
+}
+
+.crm-form-input[readonly] {
+  background: #e9ecef;
+  color: #6c757d;
 }
 
 .crm-form-grid {

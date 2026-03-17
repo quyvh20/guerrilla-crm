@@ -26,6 +26,9 @@ func ConnectDb() {
 		&models.Interaction{},
 		&models.ValueLedger{},
 		&models.Task{},
+		&models.CustomObject{},
+		&models.CustomField{},
+		&models.CustomFieldValue{},
 	)
 	if err != nil {
 		panic(err)

@@ -1,12 +1,12 @@
 (function () {
   if (document.getElementById("guerrilla-crm-fab")) return;
 
-  // --- TRẠNG THÁI TÍCH LŨY ---
+  // --- ACCUMULATED STATE ---
   let selectedText = "";
-  let accumulatedMessages = []; // Mảng chứa các câu chat người dùng đã bóp nhặt
+  let accumulatedMessages = [];
   let selectedCustomerId = null;
 
-  // --- 1. Tạo FAB Toolbar (Nổi khi bôi đen) ---
+  // --- 1. Create FAB Toolbar (Floating on text selection) ---
   const fab = document.createElement("div");
   fab.id = "guerrilla-crm-fab";
   fab.innerHTML = `
@@ -22,17 +22,17 @@
   `;
   document.body.appendChild(fab);
 
-  // --- 2. Tạo Nút Giỏ Hàng (Góc dưới phải) ---
+  // --- 2. Create Cart Button (Bottom right corner) ---
   const cartBtn = document.createElement("button");
   cartBtn.id = "guerrilla-crm-cart";
-  cartBtn.style.display = "none"; // Ẩn khi chưa có tin nhắn nào
+  cartBtn.style.display = "none"; // Hidden when no messages yet
   cartBtn.innerHTML = `
     <span>Analyze CRM</span>
     <span id="crm-cart-badge">0</span>
   `;
   document.body.appendChild(cartBtn);
 
-  // --- 3. Tạo Modal Chính (Review) ---
+  // --- 3. Create Main Modal (Review) ---
   const backdrop = document.createElement("div");
   backdrop.id = "guerrilla-crm-modal-backdrop";
   document.body.appendChild(backdrop);
@@ -42,69 +42,90 @@
   modal.innerHTML = `
     <h3>Review Conversation <span id="crm-modal-close">&times;</span></h3>
 
-    <!-- Bước 1: Duyệt nội dung chữ đã nhặt -->
+    <!-- Step 1: Review captured messages -->
     <div id="crm-step-1" class="crm-step active">
       <span class="crm-label">Temporarily saved messages</span>
       <div id="crm-msg-list" class="crm-msg-list"></div>
       
-      <button id="crm-analyze-btn" class="crm-btn">Send to AI for analysis →</button>
+      <button id="crm-analyze-btn" class="crm-btn">Send to AI for analysis &rarr;</button>
     </div>
 
-    <!-- Bước 2: AI Result & Auto Create Lead (2-Column Form) -->
+    <!-- Step 2: AI Result & Lead Options (2-Column Form) -->
     <div id="crm-step-2" class="crm-step">
+
+      <!-- Lead Option Selector -->
+      <div class="crm-lead-options">
+        <label class="crm-radio-label crm-radio-active" id="crm-radio-new-label">
+          <input type="radio" name="crm-lead-mode" value="new" id="crm-radio-new" checked />
+          <span class="crm-radio-icon">➕</span> Create New Lead
+        </label>
+        <label class="crm-radio-label" id="crm-radio-existing-label">
+          <input type="radio" name="crm-lead-mode" value="existing" id="crm-radio-existing" />
+          <span class="crm-radio-icon">🔍</span> Select Existing Lead
+        </label>
+      </div>
+
+      <!-- Existing Lead Search Panel (hidden by default) -->
+      <div id="crm-existing-panel" style="display:none">
+        <div class="crm-form-group">
+          <span class="crm-form-label">Search by Phone or Name</span>
+          <input type="text" id="crm-search-existing" class="crm-form-input" placeholder="Enter phone number or name..." />
+        </div>
+        <div id="crm-search-results" class="crm-search-results"></div>
+      </div>
+
       <div class="crm-form-grid">
-        <!-- CỘT TRÁI: HỒ SƠ KHÁCH HÀNG -->
+        <!-- LEFT COLUMN: CUSTOMER PROFILE -->
         <div class="crm-form-col">
           <div class="crm-col-title">👤 Profile Info</div>
           <div class="crm-form-row">
             <div class="crm-form-group">
               <span class="crm-form-label">Customer Name</span>
-              <input type="text" id="crm-form-name" class="crm-form-input" placeholder="Nguyễn Văn A" />
+              <input type="text" id="crm-form-name" class="crm-form-input" placeholder="John Doe" />
             </div>
             <div class="crm-form-group">
               <span class="crm-form-label">Phone Number</span>
               <input type="text" id="crm-form-phone" class="crm-form-input" placeholder="09xxxx" />
-              <span id="crm-lookup-msg" class="crm-lookup-status"></span>
             </div>
           </div>
           <div class="crm-form-group">
             <span class="crm-form-label">Company Name</span>
-            <input type="text" id="crm-form-company" class="crm-form-input" placeholder="Công ty ABC..." />
+            <input type="text" id="crm-form-company" class="crm-form-input" placeholder="Acme Corp..." />
           </div>
           <div class="crm-form-row">
             <div class="crm-form-group">
               <span class="crm-form-label">Job Title</span>
-              <input type="text" id="crm-form-job" class="crm-form-input" placeholder="Giám đốc..." />
+              <input type="text" id="crm-form-job" class="crm-form-input" placeholder="Director..." />
             </div>
             <div class="crm-form-group">
-              <span class="crm-form-label">Nguồn (Source)</span>
+              <span class="crm-form-label">Source</span>
               <input type="text" id="crm-form-source" class="crm-form-input" placeholder="Zalo, FB..." />
             </div>
           </div>
           <div class="crm-form-group">
             <span class="crm-form-label">Address</span>
-            <input type="text" id="crm-form-address" class="crm-form-input" placeholder="Số nhà, đường..." />
+            <input type="text" id="crm-form-address" class="crm-form-input" placeholder="Street, City..." />
           </div>
           <div class="crm-form-group" style="margin-bottom:0">
             <span class="crm-form-label">Email</span>
-            <input type="email" id="crm-form-email" class="crm-form-input" placeholder="Email khách hàng" />
+            <input type="email" id="crm-form-email" class="crm-form-input" placeholder="customer@email.com" />
           </div>
         </div>
 
-        <!-- CỘT PHẢI: CONTEXT BÁN HÀNG -->
+        <!-- RIGHT COLUMN: SALES CONTEXT -->
         <div class="crm-form-col">
           <div class="crm-col-title">💼 Sales Context</div>
           
           <input type="hidden" id="crm-customer-id" />
 
           <div class="crm-form-group">
-            <span class="crm-form-label">Nhu cầu (Intent)</span>
+            <span class="crm-form-label">Intent</span>
             <input type="text" id="crm-form-intent" class="crm-form-input" />
           </div>
 
           <div class="crm-form-group">
-            <span class="crm-form-label">Nỗi Đau (Pain Points)</span>
-            <input type="text" id="crm-form-pain" class="crm-form-input" placeholder="Khó khăn khách đang gặp..." />
+            <span class="crm-form-label">Pain Points</span>
+            <input type="text" id="crm-form-pain" class="crm-form-input" placeholder="Customer challenges..." />
           </div>
 
           <div class="crm-form-row">
@@ -113,7 +134,7 @@
               <input type="number" id="crm-form-budget" class="crm-form-input" />
             </div>
             <div class="crm-form-group">
-              <span class="crm-form-label">Điểm (1-10)</span>
+              <span class="crm-form-label">Score (1-10)</span>
               <input type="number" id="crm-form-score" class="crm-form-input" />
             </div>
           </div>
@@ -129,11 +150,14 @@
               <option value="NEGATIVE">Negative</option>
             </select>
           </div>
+
+          <!-- Dynamic Custom Fields Container -->
+          <div id="crm-custom-fields-container"></div>
         </div>
       </div> <!-- End Grid -->
 
       <button id="crm-save-btn" class="crm-btn-success">Save to Database ✓</button>
-      <button id="crm-back-1-btn" class="crm-btn-secondary">← Back to review messages</button>
+      <button id="crm-back-1-btn" class="crm-btn-secondary">&larr; Back to review messages</button>
       
       <div id="crm-status-msg" class="crm-status">Saved successfully!</div>
       <div id="crm-error-msg" class="crm-error"></div>
@@ -166,7 +190,7 @@
     document.getElementById("crm-step-" + n).classList.add("active");
   }
 
-  // --- EVENT: HIỆN THÙNG ĐỒ NGHỀ KHI BÔI ĐEN ---
+  // --- EVENT: Show FAB toolbar on text selection ---
   document.addEventListener("mouseup", (e) => {
     if (e.target.closest("#guerrilla-crm-modal") || e.target.closest("#guerrilla-crm-fab") || e.target.closest("#guerrilla-crm-cart")) return;
 
@@ -205,7 +229,7 @@
   document.getElementById("crm-modal-close").addEventListener("click", closeModal);
   backdrop.addEventListener("click", closeModal);
 
-  // --- RENDERING CHAT TRONG MODAL ---
+  // --- RENDER CHAT MESSAGES IN MODAL ---
   function renderModalMessageList() {
     const list = document.getElementById("crm-msg-list");
     list.innerHTML = "";
@@ -265,59 +289,178 @@
     return "UNKNOWN";
   }
 
-  async function searchCustomers(phone) {
-    const url = `http://localhost:3000/api/customers${phone ? "?phone=" + encodeURIComponent(phone) : ""}`;
+  async function searchCustomers(query) {
+    const url = `http://localhost:3000/api/customers${query ? "?phone=" + encodeURIComponent(query) : ""}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error("API Error: " + res.status);
     return await res.json();
   }
 
-  // Auto trigger lookup when typing phone manually:
-  document.getElementById("crm-form-phone").addEventListener("change", async (e) => {
-    checkCustomerPhone(e.target.value);
+  // --- LEAD MODE RADIO BUTTONS ---
+  document.getElementById("crm-radio-new").addEventListener("change", () => {
+    document.getElementById("crm-existing-panel").style.display = "none";
+    document.getElementById("crm-radio-new-label").classList.add("crm-radio-active");
+    document.getElementById("crm-radio-existing-label").classList.remove("crm-radio-active");
+    document.getElementById("crm-customer-id").value = "";
+    document.getElementById("crm-save-btn").textContent = "Create New Lead & Save ✓";
+    // Enable profile fields for editing
+    toggleProfileFields(false);
   });
 
-  async function checkCustomerPhone(phoneVal) {
-    const msgEl = document.getElementById("crm-lookup-msg");
-    const idEl = document.getElementById("crm-customer-id");
-    const btnSave = document.getElementById("crm-save-btn");
+  document.getElementById("crm-radio-existing").addEventListener("change", () => {
+    document.getElementById("crm-existing-panel").style.display = "block";
+    document.getElementById("crm-radio-existing-label").classList.add("crm-radio-active");
+    document.getElementById("crm-radio-new-label").classList.remove("crm-radio-active");
+    document.getElementById("crm-save-btn").textContent = "Update Customer & Save Chat ✓";
+  });
 
-    if (!phoneVal || phoneVal.length < 8) {
-      msgEl.className = "crm-lookup-status new";
-      msgEl.textContent = "Customer lạ (Sẽ tạo Lead mới)";
-      idEl.value = "";
-      btnSave.textContent = "Create New Lead & Save ✓";
+  function toggleProfileFields(readonly) {
+    ["crm-form-name", "crm-form-phone", "crm-form-company", "crm-form-job", "crm-form-source", "crm-form-address", "crm-form-email"].forEach(id => {
+      document.getElementById(id).readOnly = readonly;
+    });
+  }
+
+  // --- EXISTING LEAD SEARCH ---
+  let searchTimeout = null;
+  document.getElementById("crm-search-existing").addEventListener("input", (e) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => performLeadSearch(e.target.value), 400);
+  });
+
+  async function performLeadSearch(query) {
+    const resultsDiv = document.getElementById("crm-search-results");
+    if (!query || query.length < 2) {
+      resultsDiv.innerHTML = "<div class='crm-search-empty'>Type at least 2 characters to search...</div>";
       return;
     }
-    
-    msgEl.textContent = "Looking up...";
-    msgEl.className = "crm-lookup-status";
-    
+    resultsDiv.innerHTML = "<div class='crm-search-empty'>Searching...</div>";
     try {
-      const customers = await searchCustomers(phoneVal);
-      // Filter Exact Match
-      const exactMatch = customers.find(c => c.phone.replace(/\\D/g, '') === phoneVal.replace(/\\D/g, ''));
-      
-      if (exactMatch) {
-        msgEl.className = "crm-lookup-status existing";
-        msgEl.textContent = `Customer cũ: ${exactMatch.name} (Có sẵn trong CRM)`;
-        idEl.value = exactMatch.id;
-        btnSave.textContent = "Update Customer & Save Chat ✓";
-      } else {
-        msgEl.className = "crm-lookup-status new";
-        msgEl.textContent = "SĐT chưa có (Sẽ tạo Lead mới)";
-        idEl.value = "";
-        btnSave.textContent = "Create New Lead & Save ✓";
+      const customers = await searchCustomers(query);
+      if (customers.length === 0) {
+        resultsDiv.innerHTML = "<div class='crm-search-empty'>No customers found. Try a different search.</div>";
+        return;
       }
+      resultsDiv.innerHTML = "";
+      customers.forEach(c => {
+        const item = document.createElement("div");
+        item.className = "crm-search-item";
+        item.innerHTML = `<strong>${c.name || "Unnamed"}</strong> <span style="color:#888">${c.phone || ""}</span>`;
+        item.addEventListener("click", () => {
+          selectExistingCustomer(c);
+          resultsDiv.innerHTML = "";
+        });
+        resultsDiv.appendChild(item);
+      });
     } catch {
-      msgEl.className = "crm-lookup-status new";
-      msgEl.textContent = "Không thể tra cứu CRM (Sẽ thử tạo mới)";
-      idEl.value = "";
-      btnSave.textContent = "Create New Lead & Save ✓";
+      resultsDiv.innerHTML = "<div class='crm-search-empty'>Search failed. Check if the server is running.</div>";
     }
   }
 
-  // --- STEP 1: GỬI AI ---
+  function selectExistingCustomer(c) {
+    document.getElementById("crm-customer-id").value = c.id;
+    document.getElementById("crm-form-name").value = c.name || "";
+    document.getElementById("crm-form-phone").value = c.phone || "";
+    document.getElementById("crm-form-email").value = c.email || "";
+    document.getElementById("crm-form-address").value = c.address || "";
+    document.getElementById("crm-form-company").value = c.company || "";
+    document.getElementById("crm-form-job").value = c.job_title || "";
+    document.getElementById("crm-form-source").value = c.source || "";
+    document.getElementById("crm-save-btn").textContent = "Update Customer & Save Chat ✓";
+    toggleProfileFields(true);
+
+    // Load custom field values for this customer
+    loadCustomFieldValues(c.id);
+  }
+
+  // --- DYNAMIC CUSTOM FIELDS ---
+  async function loadCustomFields() {
+    try {
+      const res = await fetch("http://localhost:3000/api/custom-fields?object=customer");
+      if (!res.ok) return;
+      const fields = await res.json();
+      renderCustomFields(fields);
+    } catch {
+      // Silently fail - custom fields are optional
+    }
+  }
+
+  function renderCustomFields(fields) {
+    const container = document.getElementById("crm-custom-fields-container");
+    container.innerHTML = "";
+    if (!fields || fields.length === 0) return;
+
+    const title = document.createElement("div");
+    title.className = "crm-col-title";
+    title.style.marginTop = "8px";
+    title.textContent = "🔧 Custom Fields";
+    container.appendChild(title);
+
+    fields.forEach(field => {
+      const group = document.createElement("div");
+      group.className = "crm-form-group";
+
+      const label = document.createElement("span");
+      label.className = "crm-form-label";
+      label.textContent = field.name;
+
+      let input;
+      if (field.field_type === "BOOLEAN") {
+        input = document.createElement("select");
+        input.className = "crm-form-input";
+        input.innerHTML = `<option value="">--</option><option value="true">Yes</option><option value="false">No</option>`;
+      } else if (field.field_type === "NUMBER") {
+        input = document.createElement("input");
+        input.type = "number";
+        input.className = "crm-form-input";
+      } else {
+        input = document.createElement("input");
+        input.type = "text";
+        input.className = "crm-form-input";
+      }
+      input.id = "crm-custom-" + field.id;
+      input.dataset.fieldId = field.id;
+      input.dataset.fieldType = field.field_type;
+
+      group.appendChild(label);
+      group.appendChild(input);
+      container.appendChild(group);
+    });
+  }
+
+  async function loadCustomFieldValues(customerId) {
+    try {
+      const res = await fetch(`http://localhost:3000/api/custom-field-values?record_id=${customerId}`);
+      if (!res.ok) return;
+      const values = await res.json();
+      values.forEach(v => {
+        const input = document.getElementById("crm-custom-" + v.custom_field_id);
+        if (input) {
+          if (v.value_number !== 0) input.value = v.value_number;
+          else input.value = v.value_string || "";
+        }
+      });
+    } catch {
+      // Silently fail
+    }
+  }
+
+  function collectCustomFieldValues() {
+    const container = document.getElementById("crm-custom-fields-container");
+    const inputs = container.querySelectorAll("[data-field-id]");
+    const result = {};
+    inputs.forEach(input => {
+      const val = input.value.trim();
+      if (val) {
+        result[input.dataset.fieldId] = {
+          field_type: input.dataset.fieldType,
+          value: val
+        };
+      }
+    });
+    return result;
+  }
+
+  // --- STEP 1: SEND TO AI ---
   document.getElementById("crm-analyze-btn").addEventListener("click", async () => {
     if (!accumulatedMessages.length) return;
 
@@ -334,7 +477,7 @@
       });
       if (!res.ok) {
         const errText = await res.text();
-        throw new Error(`Worker lỗi HTTP ${res.status}: ${errText}`);
+        throw new Error(`Worker HTTP error ${res.status}: ${errText}`);
       }
       
       const aiResult = await res.json();
@@ -362,13 +505,18 @@
 
       document.getElementById("crm-status-msg").style.display = "none";
       document.getElementById("crm-error-msg").style.display = "none";
+
+      // Reset lead mode to "Create New"
+      document.getElementById("crm-radio-new").checked = true;
+      document.getElementById("crm-radio-new").dispatchEvent(new Event("change"));
+
       showStep(2);
 
-      // Trigger auto lookup based on extracted phone
-      checkCustomerPhone(document.getElementById("crm-form-phone").value);
+      // Load custom fields for the form
+      loadCustomFields();
 
     } catch (err) {
-      alert("Lỗi AI: " + err.message);
+      alert("AI Error: " + err.message);
     } finally {
       btn.textContent = "Send to AI for analysis →";
       btn.disabled = false;
@@ -377,18 +525,19 @@
 
   document.getElementById("crm-back-1-btn").addEventListener("click", () => showStep(1));
 
-  // --- STEP 3: LƯU DATABASE ---
+  // --- STEP 2: SAVE TO DATABASE ---
   document.getElementById("crm-save-btn").addEventListener("click", async () => {
     let customerId = document.getElementById("crm-customer-id").value;
     const phone = document.getElementById("crm-form-phone").value.trim();
     const name = document.getElementById("crm-form-name").value.trim() || "Unnamed Customer";
+    const leadMode = document.querySelector('input[name="crm-lead-mode"]:checked').value;
 
     const btn = document.getElementById("crm-save-btn");
     btn.textContent = "Saving to system...";
     btn.disabled = true;
     document.getElementById("crm-error-msg").style.display = "none";
 
-    // Lấy các trường bổ sung
+    // Collect additional fields
     const email = document.getElementById("crm-form-email").value.trim();
     const address = document.getElementById("crm-form-address").value.trim();
     const company = document.getElementById("crm-form-company").value.trim();
@@ -397,10 +546,11 @@
     const painPoints = document.getElementById("crm-form-pain").value.trim();
     const intent = document.getElementById("crm-form-intent").value.trim();
     const budget = parseInt(document.getElementById("crm-form-budget").value) || 0;
+    const customFields = collectCustomFieldValues();
 
     try {
-      // 1. Nếu là KH mới -> Gọi API Create Customer để sinh Lead
-      if (!customerId) {
+      // 1. If new lead -> Call API to create customer
+      if (leadMode === "new" && !customerId) {
         if (!phone) throw new Error("Please enter a phone number to create a new Lead!");
         const leadRes = await fetch("http://localhost:3000/api/customers", {
           method: "POST",
@@ -422,7 +572,9 @@
         customerId = newLead.id;
       }
 
-      // 2. Chuyển thông tin hội thoại tới Backend Interactions
+      if (!customerId) throw new Error("No customer selected. Please select an existing lead or create a new one.");
+
+      // 2. Send conversation data to Backend Interactions
       const channel = getCurrentChannel();
       const rawContent = accumulatedMessages.map((m) => `${m.role === "sales" ? "Sales" : "Customer"}: ${m.text}`).join("\\n");
       
@@ -436,7 +588,7 @@
           ai_summary: document.getElementById("crm-form-summary").value,
           sentiment: document.getElementById("crm-form-sentiment").value,
           sales_score: parseInt(document.getElementById("crm-form-score").value) || 0,
-          // Truyền full bộ rich data để Upsert qua Interaction Controller
+          // Pass full rich data for Upsert via Interaction Controller
           email: email,
           address: address,
           job_title: jobTitle,
@@ -444,7 +596,8 @@
           source: source,
           pain_points: painPoints,
           intent: intent,
-          budget: budget
+          budget: budget,
+          custom_fields: customFields
         }),
       });
       

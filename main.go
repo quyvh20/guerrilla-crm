@@ -219,6 +219,93 @@ func main() {
 		return c.Status(fiber.StatusCreated).JSON(ledger)
 	})
 
+	// --- Custom Objects CRUD ---
+	app.Post("/api/custom-objects", func(c *fiber.Ctx) error {
+		obj := new(models.CustomObject)
+		if err := c.BodyParser(obj); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+		if err := database.DB.Create(obj).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.Status(fiber.StatusCreated).JSON(obj)
+	})
+
+	app.Get("/api/custom-objects", func(c *fiber.Ctx) error {
+		userID := c.Query("user_id")
+		var objects []models.CustomObject
+		q := database.DB.Preload("Fields")
+		if userID != "" {
+			q = q.Where("user_id = ?", userID)
+		}
+		if err := q.Find(&objects).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.JSON(objects)
+	})
+
+	// --- Custom Fields CRUD ---
+	app.Post("/api/custom-fields", func(c *fiber.Ctx) error {
+		field := new(models.CustomField)
+		if err := c.BodyParser(field); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+		if err := database.DB.Create(field).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.Status(fiber.StatusCreated).JSON(field)
+	})
+
+	// GET /api/custom-fields?object=customer
+	// Returns all custom fields for the given object name (used by Chrome Extension)
+	app.Get("/api/custom-fields", func(c *fiber.Ctx) error {
+		objectName := c.Query("object")
+		if objectName == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "object query param required"})
+		}
+
+		var obj models.CustomObject
+		if err := database.DB.Where("LOWER(name) = LOWER(?)", objectName).First(&obj).Error; err != nil {
+			// No custom object found, return empty array
+			return c.JSON([]models.CustomField{})
+		}
+
+		var fields []models.CustomField
+		database.DB.Where("custom_object_id = ?", obj.ID).Find(&fields)
+		return c.JSON(fields)
+	})
+
+	// --- Custom Field Values CRUD ---
+	app.Get("/api/custom-field-values", func(c *fiber.Ctx) error {
+		recordID := c.Query("record_id")
+		if recordID == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "record_id query param required"})
+		}
+		var values []models.CustomFieldValue
+		database.DB.Where("record_id = ?", recordID).Find(&values)
+		return c.JSON(values)
+	})
+
+	app.Post("/api/custom-field-values", func(c *fiber.Ctx) error {
+		val := new(models.CustomFieldValue)
+		if err := c.BodyParser(val); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+		// Upsert: if a value for this record+field already exists, update it
+		var existing models.CustomFieldValue
+		result := database.DB.Where("record_id = ? AND custom_field_id = ?", val.RecordID, val.CustomFieldID).First(&existing)
+		if result.Error == nil {
+			existing.ValueString = val.ValueString
+			existing.ValueNumber = val.ValueNumber
+			database.DB.Save(&existing)
+			return c.JSON(existing)
+		}
+		if err := database.DB.Create(val).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.Status(fiber.StatusCreated).JSON(val)
+	})
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "3000"
